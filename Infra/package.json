@@ -1,0 +1,25 @@
+{
+  "name": "house-price-index-api",
+  "version": "0.1.0",
+  "bin": {
+    "house-price-index-api": "bin/house-price-index-api.js"
+  },
+  "scripts": {
+    "build": "echo \"The build step is not required when using JavaScript!\" && exit 0",
+    "cdk": "cdk",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@aws-cdk/assert": "1.45.0",
+    "aws-cdk": "1.45.0",
+    "jest": "^25.5.0"
+  },
+  "dependencies": {
+    "@aws-cdk/core": "1.46.0",
+    "@aws-cdk/aws-iam": "1.46.0",
+    "@aws-cdk/aws-lambda": "1.46.0",
+    "@aws-cdk/aws-s3": "1.46.0",
+    "@aws-cdk/aws-rds": "1.46.0",
+    "@aws-cdk/aws-ec2": "1.46.0"
+  }
+}
