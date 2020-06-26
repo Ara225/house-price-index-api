@@ -1,0 +1,14 @@
+{
+  "name": "getregionslambda",
+  "version": "0.0.1",
+  "description": "Lambda function for getting the regions in the house prices DB",
+  "main": "hello.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "mysql2": "*"
+  }
+}
