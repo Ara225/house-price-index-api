@@ -10,5 +10,8 @@
   "license": "MIT",
   "dependencies": {
     "mysql2": "*"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.706.0"
   }
 }
