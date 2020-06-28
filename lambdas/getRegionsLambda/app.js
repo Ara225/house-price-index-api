@@ -42,7 +42,6 @@ exports.handler = async function (event, context, callback) {
             return connection.query('select DISTINCT RegionName from main', function (error, results, fields) {
                 // And done with the connection.
                 connection.release();
-
                 return error ? reject(error) : resolve(results);
             })
     });
