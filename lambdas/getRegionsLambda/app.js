@@ -1,4 +1,6 @@
 const mysql = require('mysql2');
+const AWS = require('aws-sdk');
+
 // Hack to make iconv load the encodings module, otherwise jest crashes. Compare
 // https://github.com/sidorares/node-mysql2/issues/489
 require('iconv-lite').encodingExists('foo');
@@ -10,7 +12,6 @@ exports.handler = async (event) => {
     }
     else {
         // Get password from System Manager Parameter Store if running on AWS
-        var AWS = require('aws-sdk');
         AWS.config.update({ region: 'eu-west-2' });
         var ssm = new AWS.SSM();
         var rds_password = await new Promise(function (success, reject) {
@@ -25,6 +26,7 @@ exports.handler = async (event) => {
                 }
             });
         });
+    }
     var connection = mysql.createConnection({
         host: process.env.RDS_ENDPOINT,
         user: process.env.RDS_USERNAME,
@@ -32,7 +34,6 @@ exports.handler = async (event) => {
         database: process.env.RDS_DATABASE
     })
     var query = 'select DISTINCT RegionName from main'
-    global.result = null
     connection.connect()
 
     return new Promise( ( resolve, reject ) => {
@@ -53,5 +54,4 @@ exports.handler = async (event) => {
         })
     })
     })
-}
 }
