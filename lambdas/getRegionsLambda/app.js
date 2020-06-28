@@ -36,22 +36,22 @@ exports.handler = async (event) => {
     var query = 'select DISTINCT RegionName from main'
     connection.connect()
 
-    return new Promise( ( resolve, reject ) => {
+    return new Promise((resolve, reject) => {
         connection.query(query, function (error, results, fields) {
-        connection.end( err => {
-            if ( err ) {
-                return reject( err )
-            }
-            var finalRegions = []
-            for (var i = 0; i < results.length; i++) {
-                finalRegions.push(results[i].RegionName)
-            }
-            const response = {
-                statusCode: 200,
-                body: JSON.stringify(finalRegions),
-            }
-            resolve(response)
+            connection.end(err => {
+                if (err) {
+                    return reject(err)
+                }
+                var finalRegions = []
+                for (var i = 0; i < results.length; i++) {
+                    finalRegions.push(results[i].RegionName)
+                }
+                const response = {
+                    statusCode: 200,
+                    body: JSON.stringify(finalRegions),
+                }
+                resolve(response)
+            })
         })
-    })
     })
 }
