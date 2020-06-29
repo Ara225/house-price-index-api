@@ -5,7 +5,7 @@ const AWS = require('aws-sdk');
 // https://github.com/sidorares/node-mysql2/issues/489
 require('iconv-lite').encodingExists('foo');
 
-exports.handler = async (event) => {
+function getConnection() {
     // Get password from an env var if running locally
     if (process.env.localTest) {
         var rds_password = process.env.RDS_PASSWORD
@@ -27,17 +27,24 @@ exports.handler = async (event) => {
             });
         });
     }
-    var connection = mysql.createConnection({
+    return mysql.createConnection({
         host: process.env.RDS_ENDPOINT,
         user: process.env.RDS_USERNAME,
         password: rds_password,
         database: process.env.RDS_DATABASE
     })
-    var query = 'select DISTINCT AreaCode from main'
-    connection.connect()
+}
 
+function constructQuery(event) {
+    event
+}
+
+exports.handler = async (event) => {
+    var query = constructQuery(event)
+    var connection = getConnection()
+    connection.connect()
     return new Promise((resolve, reject) => {
-        connection.query(query, function (error, results, fields) {
+        connection.query(query[0], query[1], function (error, results, fields) {
             connection.end(err => {
                 if (err) {
                     return reject(err)
