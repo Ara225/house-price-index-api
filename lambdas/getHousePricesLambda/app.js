@@ -101,24 +101,19 @@ async function getConnection() {
 }
 
 function constructQuery(event, connection) {
-    /*maxDate 
-    minDate
-    RegionName 
-    AreaCode
-    houseType ["Detached", "SemiDetached", "Terraced", "Flat", "New", "Old"]
-    purchaseType ["Cash", "Mortgage", "FTB", "FOO"]
-    startId
-    limit*/
     var query = ["", []]
     var params = event.multiValueQueryStringParameters ? event.multiValueQueryStringParameters : {}
-    var limit = params.limit ? parseInt(connection.escape(params.limit)) : 5
-    var startId = params.startId ? parseInt(connection.escape(params.startId)) : 0
-    if (!((params.limit || params.startId) & Object.keys(params).length < 1) & !((params.limit & params.startId) & Object.keys(params).length == 2)) {
+    var limit = params.limit ? parseInt(connection.escape(params.limit)) : 50
+    var startFromId = params.startFromId ? parseInt(connection.escape(params.startFromId)) : 0
+    if (limit > 100) {
+        throw Error("Limit was over 100, unable to process query")
+    }
+    if (!((params.limit || params.startFromId) & Object.keys(params).length < 1) & !((params.limit & params.startFromId) & Object.keys(params).length == 2)) {
         if (!params.houseType & !params.purchaseType) {
             query[0] = 'SELECT *'
         }
         else {
-            query[0] = 'SELECT Date,RegionName,AreaCode,id '
+            query[0] = 'SELECT Date,RegionName,AreaCode,id, '
         }
         if (params.houseType) {
             for (i in params.houseType) {
@@ -159,22 +154,21 @@ function constructQuery(event, connection) {
         }
         if (!params.maxDate & !params.minDate & !params.RegionName & !params.AreaCode) {
             query[0] += 'AND (ID > ? AND ID <= ?) '
-            query[1].push(startId)
-            query[1].push((limit + startId))
+            query[1].push(startFromId)
+            query[1].push((limit + startFromId))
         }
         else {
             query[0] += 'LIMIT ? OFFSET ? '
             query[1].push(limit)
-            query[1].push(startId)
+            query[1].push(startFromId)
         }
     }
     else {
         query[0] = 'SELECT * FROM main WHERE (ID > ? AND ID <= ?)'
-        query[1].push(startId)
-        query[1].push((limit + startId))
+        query[1].push(startFromId)
+        query[1].push((limit + startFromId))
     }
     query[0] = query[0].replace("main AND", "main WHERE")
-    console.log(query)
     return query
 }
 
@@ -188,7 +182,7 @@ exports.handler = async (event) => {
         console.log(e)
         return {
             statusCode: 500,
-            body: JSON.stringify({message: "Invalid query parameters", "Error":e.toString()}),
+            body: JSON.stringify({message: "Invalid query parameters", error: e.toString()}),
         }
     }
     if (query[1].length > 0) {
@@ -201,8 +195,6 @@ exports.handler = async (event) => {
                     if (err) {
                         return reject(err)
                     }
-                    console.log(results.length)
-
                     const response = {
                         statusCode: 200,
                         body: JSON.stringify(results),
@@ -222,7 +214,6 @@ exports.handler = async (event) => {
                     if (err) {
                         return reject(err)
                     }
-                    console.log(results.length)
                     const response = {
                         statusCode: 200,
                         body: JSON.stringify(results),

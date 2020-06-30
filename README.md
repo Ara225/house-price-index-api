@@ -20,7 +20,7 @@ RegionName
 AreaCode
 houseType ["Detached", "SemiDetached", "Terraced", "Flat", "New", "Old"]
 purchaseType ["Cash", "Mortgage", "FTB", "FOO"]
-startId
+startFromId
 limit
 ```SQL
 CREATE TABLE `main` (
