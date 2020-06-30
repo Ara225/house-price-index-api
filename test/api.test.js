@@ -45,6 +45,7 @@ describe('Test getHousePricesLambda4', function () {
     it('Verifies successful response', async done => {
         const result = await getHousePricesLambda.handler({multiValueQueryStringParameters: {startId: 3}});
         expect(JSON.parse(result.body)[0].AreaCode).toEqual("S12000034");
+        expect(JSON.parse(result.body)[0].id).toEqual(4);
         done()
     });
 });
@@ -60,7 +61,6 @@ describe('Test getHousePricesLambda5', function () {
 describe('Test getHousePricesLambda6', function () {
     it('Verifies successful response', async done => {
         const result = await getHousePricesLambda.handler({multiValueQueryStringParameters: {minDate: ["2004-03-01"]}});
-        console.log(result)
         expect(JSON.parse(result.body)[0].AreaCode).toEqual("S12000034");
         done()
     });

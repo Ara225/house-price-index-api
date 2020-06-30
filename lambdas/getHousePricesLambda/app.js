@@ -112,7 +112,7 @@ function constructQuery(event, connection) {
     var query = ["", []]
     var params = event.multiValueQueryStringParameters ? event.multiValueQueryStringParameters : {}
     var limit = params.limit ? parseInt(connection.escape(params.limit)) : 5
-    var startId = params.startId ? parseInt(connection.escape(params.startId)) : 1
+    var startId = params.startId ? parseInt(connection.escape(params.startId)) : 0
     if (!((params.limit || params.startId) & Object.keys(params).length < 1) & !((params.limit & params.startId) & Object.keys(params).length == 2)) {
         if (!params.houseType & !params.purchaseType) {
             query[0] = 'SELECT *'
@@ -151,27 +151,27 @@ function constructQuery(event, connection) {
         }
         if (params.maxDate) {
             query[0] += "AND Date < ? "
-            query[1].push(connection.escape(params.maxDate[0]))
+            query[1].push(connection.escape(params.maxDate[0]).replace(/'/g, ""))
         }
         if (params.minDate) {
             query[0] += "AND Date > ? "
-            query[1].push(connection.escape(params.minDate[0]))
+            query[1].push(connection.escape(params.minDate[0]).replace(/'/g, ""))
         }
         if (!params.maxDate & !params.minDate & !params.RegionName & !params.AreaCode) {
             query[0] += 'AND (ID > ? AND ID <= ?) '
-            query[1].push(startId.toString())
-            query[1].push((limit + startId).toString())
+            query[1].push(startId)
+            query[1].push((limit + startId))
         }
         else {
             query[0] += 'LIMIT ? OFFSET ? '
-            query[1].push(limit.toString())
-            query[1].push(startId.toString())
+            query[1].push(limit)
+            query[1].push(startId)
         }
     }
     else {
         query[0] = 'SELECT * FROM main WHERE (ID > ? AND ID <= ?)'
-        query[1].push(startId.toString())
-        query[1].push((limit + startId).toString())
+        query[1].push(startId)
+        query[1].push((limit + startId))
     }
     query[0] = query[0].replace("main AND", "main WHERE")
     console.log(query)
@@ -194,10 +194,14 @@ exports.handler = async (event) => {
     if (query[1].length > 0) {
         return new Promise((resolve, reject) => {
             connection.query(query[0], query[1], function (error, results, fields) {
+                if (error) {
+                    return reject(error)
+                }
                 connection.end(err => {
                     if (err) {
                         return reject(err)
                     }
+                    console.log(results.length)
 
                     const response = {
                         statusCode: 200,
@@ -211,10 +215,14 @@ exports.handler = async (event) => {
     else {
         return new Promise((resolve, reject) => {
             connection.query(query[0], function (error, results, fields) {
+                if (error) {
+                    return reject(error)
+                }
                 connection.end(err => {
                     if (err) {
                         return reject(err)
                     }
+                    console.log(results.length)
                     const response = {
                         statusCode: 200,
                         body: JSON.stringify(results),
