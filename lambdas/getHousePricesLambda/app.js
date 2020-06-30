@@ -70,6 +70,9 @@ var columns = {
 // https://github.com/sidorares/node-mysql2/issues/489
 require('iconv-lite').encodingExists('foo');
 
+/**
+ * Get connection to the database
+ */
 async function getConnection() {
     // Get password from an env var if running locally
     if (process.env.localTest) {
@@ -100,21 +103,30 @@ async function getConnection() {
     })
 }
 
+/**
+ * Construct the SQL query. Uses prepared statements and escaping to avoid SQL injection
+ * @param {Dict} event AWS Lambda Format Event
+ * @param {mysql.Connection} connection Connection to DB
+ */
 function constructQuery(event, connection) {
     var query = ["", []]
     var params = event.multiValueQueryStringParameters ? event.multiValueQueryStringParameters : {}
-    var limit = params.limit ? parseInt(connection.escape(params.limit)) : 50
-    var startFromId = params.startFromId ? parseInt(connection.escape(params.startFromId)) : 0
+    var limit = params.limit ? parseInt(connection.escape(params.limit)) : 50;
+    var startFromId = params.startFromId ? parseInt(connection.escape(params.startFromId)) : 0;
     if (limit > 100) {
         throw Error("Limit was over 100, unable to process query")
     }
+    // If we have parameters and the parameters don't consist purely of startFromId and limit
     if (!((params.limit || params.startFromId) & Object.keys(params).length < 1) & !((params.limit & params.startFromId) & Object.keys(params).length == 2)) {
+        // Select all columns if no column limit is supplied
         if (!params.houseType & !params.purchaseType) {
             query[0] = 'SELECT *'
         }
         else {
+            // Start query with basic columns otherwise
             query[0] = 'SELECT Date,RegionName,AreaCode,id, '
         }
+        // Parse houseType
         if (params.houseType) {
             for (i in params.houseType) {
                 if (columns[params.houseType[i]]) {
@@ -125,6 +137,7 @@ function constructQuery(event, connection) {
                 }
             }
         }
+        // Parse purchaseType
         if (params.purchaseType) {
             for (i in params.purchaseType) {
                 if (columns[params.purchaseType[i]]) {
@@ -135,7 +148,9 @@ function constructQuery(event, connection) {
                 }
             }
         }
+        // Table to query
         query[0] += ' FROM main '
+        // Where clauses
         if (params.RegionName) {
             query[0] += "AND RegionName = ? "
             query[1].push(connection.escape(params.RegionName[0]))
@@ -152,6 +167,7 @@ function constructQuery(event, connection) {
             query[0] += "AND Date > ? "
             query[1].push(connection.escape(params.minDate[0]).replace(/'/g, ""))
         }
+        // If we have no where clauses, filter by ID instead of using limit (more efficient)
         if (!params.maxDate & !params.minDate & !params.RegionName & !params.AreaCode) {
             query[0] += 'AND (ID > ? AND ID <= ?) '
             query[1].push(startFromId)
@@ -171,7 +187,10 @@ function constructQuery(event, connection) {
     query[0] = query[0].replace("main AND", "main WHERE")
     return query
 }
-
+/**
+ * Actual Lambda function handler
+ * @param {Dict} event AWS Lambda Format Event
+ */
 exports.handler = async (event) => {
     var connection = await getConnection()
     connection.connect()
@@ -180,47 +199,34 @@ exports.handler = async (event) => {
     }
     catch(e) {
         console.log(e)
-        return {
-            statusCode: 500,
-            body: JSON.stringify({message: "Invalid query parameters", error: e.toString()}),
-        }
-    }
-    if (query[1].length > 0) {
         return new Promise((resolve, reject) => {
-            connection.query(query[0], query[1], function (error, results, fields) {
-                if (error) {
-                    return reject(error)
-                }
                 connection.end(err => {
                     if (err) {
                         return reject(err)
                     }
-                    const response = {
-                        statusCode: 200,
-                        body: JSON.stringify(results),
-                    }
+                    const response =  {
+                            statusCode: 500,
+                            body: JSON.stringify({message: "Invalid query parameters", error: e.toString()}),
+                        }
                     resolve(response)
                 })
             })
-        })
     }
-    else {
-        return new Promise((resolve, reject) => {
-            connection.query(query[0], function (error, results, fields) {
-                if (error) {
-                    return reject(error)
+    return new Promise((resolve, reject) => {
+        connection.query(query[0], query[1], function (error, results, fields) {
+            if (error) {
+                return reject(error)
+            }
+            connection.end(err => {
+                if (err) {
+                    return reject(err)
                 }
-                connection.end(err => {
-                    if (err) {
-                        return reject(err)
-                    }
-                    const response = {
-                        statusCode: 200,
-                        body: JSON.stringify(results),
-                    }
-                    resolve(response)
-                })
+                const response = {
+                    statusCode: 200,
+                    body: JSON.stringify(results),
+                }
+                resolve(response)
             })
         })
-    }
+    })
 }
