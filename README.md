@@ -1,27 +1,31 @@
 # House Price Index API  
-### regions    
-Date  RegionName  AreaCode 
- AveragePrice  housePriceIndex  IndexSA  OneMonthChange  TwelveMonthChange  AveragePriceSA  SalesVolume 
+## Overview
+A small project with the goal of making an API for the UK's House Price Index. The choice of dataset is mostly random: I just wanted a real life dataset to practice building an API around. It's all in Node.js, using AWS's CDK framework to define the infrastructure, API gateway + Lambda for the API, Jest for tests, and a mySQL RDS database to store the information. It's far from perfect, but I learned a lot about RDS in the process. 
 
-DetachedPrice  DetachedIndex  DetachedOneMonthChange  DetachedTwelveMonthChange  
-SemiDetachedPrice  SemiDetachedIndex  SemiDetachedOneMonthChange  SemiDetachedTwelveMonthChange  
-TerracedPrice  TerracedIndex  TerracedOneMonthChange  TerracedTwelveMonthChange  
-FlatPrice  FlatIndex  FlatOneMonthChange  FlatTwelveMonthChange  
-CashPrice  CashIndex  CashOneMonthChange  CashTwelveMonthChange  CashSalesVolume  
-MortgagePrice  MortgageIndex  MortgageOneMonthChange  MortgageTwelveMonthChange  MortgageSalesVolume
-FTBPrice  FTBIndex  FTBOneMonthChange  FTBTwelveMonthChange  
-FOOPrice  FOOIndex  FOOOneMonthChange  FOOTwelveMonthChange  
-NewPrice  NewIndex  NewOneMonthChange  NewTwelveMonthChange  NewSalesVolume  
-OldPrice  OldIndex  OldOneMonthChange  OldTwelveMonthChange  OldSalesVolume
+## Endpoints 
+### regions
+Get all regions in the dataset
 
-maxDate 
-minDate
-RegionName 
-AreaCode
-houseType ["Detached", "SemiDetached", "Terraced", "Flat", "New", "Old"]
-purchaseType ["Cash", "Mortgage", "FTB", "FOO"]
-startFromId
-limit
+### areacodes
+Get all areacodes in the dataset
+
+### houseprices
+Get house prices data
+#### Query params
+* maxDate - maximum date should be in YYYY-MM-DD - single value
+* minDate  - minium date should be in YYYY-MM-DD - single value
+* RegionName - Filter to specific region - single value
+* AreaCode - Filter to specific area codes - single value
+* houseType - Supports multiple comma separated values. Values must be one of Detached, SemiDetached, Terraced, Flat, New, or Old
+* purchaseType Supports multiple comma separated values. Values must be one of Cash, Mortgage, FTB, FOO
+* startFromId - ID to start from. This is the ID before the one we actually start searching from
+* limit - Number of records to get
+
+## Setup
+You probably don't want to use this :), but my future self may like this section.
+* Install the AWS CLI and CDK toolkit
+* Run cdk deploy in the project folder
+* Connect to the RDS and create a table (I used a Cloud9 instance in the private subnet to do this)
 ```SQL
 CREATE TABLE `main` (
   `Date` date DEFAULT NULL,
@@ -81,82 +85,5 @@ CREATE TABLE `main` (
   `id` int NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=129007 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-
 ```
-{
-  resource: '/regions',
-  path: '/regions',
-  httpMethod: 'GET',
-  headers: {
-    Accept: '*/*',
-    'CloudFront-Forwarded-Proto': 'https',
-    'CloudFront-Is-Desktop-Viewer': 'true',
-    'CloudFront-Is-Mobile-Viewer': 'false',
-    'CloudFront-Is-SmartTV-Viewer': 'false',
-    'CloudFront-Is-Tablet-Viewer': 'false',
-    'CloudFront-Viewer-Country': 'GB',
-    Host: '4zewqbqfgb.execute-api.eu-west-2.amazonaws.com',
-    'User-Agent': 'curl/7.55.1',
-    Via: '1.1 6399f745d7f0d608198c8dc9954f16b3.cloudfront.net (CloudFront)',
-    'X-Amz-Cf-Id': 'PmzzLxf_KVwkK1_jnVVbSTkox_Ztx4g03ZZdEhPGiPSeBhxDxknmTw==',
-    'X-Amzn-Trace-Id': 'Root=1-5ef8e582-994527d2325a0a943f07f8ec',
-    'X-Forwarded-For': '92.7.26.45, 64.252.166.96',
-    'X-Forwarded-Port': '443',
-    'X-Forwarded-Proto': 'https'
-  },
-  multiValueHeaders: {
-    Accept: [ '*/*' ],
-    'CloudFront-Forwarded-Proto': [ 'https' ],
-    'CloudFront-Is-Desktop-Viewer': [ 'true' ],
-    'CloudFront-Is-Mobile-Viewer': [ 'false' ],
-    'CloudFront-Is-SmartTV-Viewer': [ 'false' ],
-    'CloudFront-Is-Tablet-Viewer': [ 'false' ],
-    'CloudFront-Viewer-Country': [ 'GB' ],
-    Host: [ '4zewqbqfgb.execute-api.eu-west-2.amazonaws.com' ],
-    'User-Agent': [ 'curl/7.55.1' ],
-    Via: [
-      '1.1 6399f745d7f0d608198c8dc9954f16b3.cloudfront.net (CloudFront)'
-    ],
-    'X-Amz-Cf-Id': [ 'PmzzLxf_KVwkK1_jnVVbSTkox_Ztx4g03ZZdEhPGiPSeBhxDxknmTw==' ],
-    'X-Amzn-Trace-Id': [ 'Root=1-5ef8e582-994527d2325a0a943f07f8ec' ],
-    'X-Forwarded-For': [ '92.7.26.45, 64.252.166.96' ],
-    'X-Forwarded-Port': [ '443' ],
-    'X-Forwarded-Proto': [ 'https' ]
-  },
-  queryStringParameters: { jjj: 'll' },
-  multiValueQueryStringParameters: { jjj: [ 'll' ] },
-  pathParameters: null,
-  stageVariables: null,
-  requestContext: {
-    resourceId: 'woz5lj',
-    resourcePath: '/regions',
-    httpMethod: 'GET',
-    extendedRequestId: 'O2jMXHVCrPEFlsw=',
-    requestTime: '28/Jun/2020:18:46:26 +0000',
-    path: '/prod/regions',
-    accountId: '040684591284',
-    protocol: 'HTTP/1.1',
-    stage: 'prod',
-    domainPrefix: '4zewqbqfgb',
-    requestTimeEpoch: 1593369986269,
-    requestId: 'e2d8f944-88a6-4f22-84ab-777de829d2d4',
-    identity: {
-      cognitoIdentityPoolId: null,
-      accountId: null,
-      cognitoIdentityId: null,
-      caller: null,
-      sourceIp: '92.7.26.45',
-      principalOrgId: null,
-      accessKey: null,
-      cognitoAuthenticationType: null,
-      cognitoAuthenticationProvider: null,
-      userArn: null,
-      userAgent: 'curl/7.55.1',
-      user: null
-    },
-    domainName: '4zewqbqfgb.execute-api.eu-west-2.amazonaws.com',
-    apiId: '4zewqbqfgb'
-  },
-  body: null,
-  isBase64Encoded: false
-}
+* Import the CSV file from the UK House Prices index dataset into the DB
