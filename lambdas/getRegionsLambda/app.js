@@ -33,7 +33,7 @@ exports.handler = async (event) => {
         password: rds_password,
         database: process.env.RDS_DATABASE
     })
-    var query = 'select DISTINCT AreaCode from main'
+    var query = 'select DISTINCT RegionName from main'
     connection.connect()
 
     return new Promise((resolve, reject) => {
@@ -42,13 +42,13 @@ exports.handler = async (event) => {
                 if (err) {
                     return reject(err)
                 }
-                var AreaCodes = []
+                var RegionNames = []
                 for (var i = 0; i < results.length; i++) {
-                    AreaCodes.push(results[i].AreaCode)
+                    RegionNames.push(results[i].RegionName)
                 }
                 const response = {
                     statusCode: 200,
-                    body: JSON.stringify(AreaCodes),
+                    body: JSON.stringify(RegionNames),
                 }
                 resolve(response)
             })
